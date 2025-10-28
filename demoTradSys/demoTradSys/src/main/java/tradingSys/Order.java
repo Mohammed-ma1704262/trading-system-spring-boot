@@ -2,18 +2,20 @@ package tradingSys;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
 public class Order {
 
 	private int orderID;
 	private int userID;
-	private String stockSymbol;
+
 	private String orderType;
 	private int orderQuantity;
-	private int pricePerShare;
+
 	private String orderStatus;
 	private String timeStamp;
+
+	private String stockSymbol;
+	private int pricePerShare;
 
 	public Order(int userID, String stockSymbol, String orderType, int orderQuantity, int pricePerShare,
 			String orderStatus) {
@@ -128,6 +130,13 @@ public class Order {
 //		DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 //		String timeStamp = myDateObj.format(myFormatObj);
 		return timeStamp;
+	}
+
+	@Override
+	public String toString() {
+		return "Order [orderID=" + orderID + ", userID=" + userID + ", orderType=" + orderType + ", orderQuantity="
+				+ orderQuantity + ", orderStatus=" + orderStatus + ", timeStamp=" + timeStamp + ", stockSymbol="
+				+ stockSymbol + ", pricePerShare=" + pricePerShare + "]";
 	}
 
 }
