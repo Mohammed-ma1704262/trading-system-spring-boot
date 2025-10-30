@@ -1,14 +1,14 @@
-package tradingSys;
+package com.example.demo;
 
 public class Stock {
 
 	private String stockSymbol;
-	private int pricePerShare;
+	private double pricePerShare;
 
-	public Stock() {
-	}
+//	public Stock() {
+//	}
 
-	public Stock(String stockSymbol, int pricePerShare) {
+	public Stock(String stockSymbol, double pricePerShare) {
 		super();
 		this.stockSymbol = stockSymbol;
 		this.pricePerShare = pricePerShare;
@@ -22,7 +22,7 @@ public class Stock {
 		this.stockSymbol = stockSymbol;
 	}
 
-	public int getPricePerShare() {
+	public double getPricePerShare() {
 		return pricePerShare;
 	}
 
