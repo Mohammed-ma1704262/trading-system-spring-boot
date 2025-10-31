@@ -28,6 +28,8 @@ public class TradeSysController {
 
 	ArrayList<OrderMang> orderList = new ArrayList<OrderMang>();
 
+	ArrayList<Trade> tradeList = new ArrayList<Trade>();
+
 	@GetMapping("/api/health-check")
 	public String getHealthCheck() {
 		return "Health is Normal!";
@@ -39,15 +41,19 @@ public class TradeSysController {
 		return usersPortfolios;
 	}
 
-	// getting a specific user via his ID
-	@GetMapping("/api/user/{UserID}")
-	public Portofolio getSepcUser(@PathVariable int UserID) {
+	public Portofolio getUserById(int UserID) {
 		for (int i = 0; i < usersPortfolios.length; i++) {
 			if (usersPortfolios[i].getUserID() == UserID) {
 				return usersPortfolios[i];
 			}
 		}
 		return null;
+	}
+
+	// getting a specific user via his ID
+	@GetMapping("/api/user/{UserID}")
+	public Portofolio getSepcUser(@PathVariable int UserID) {
+		return getUserById(UserID);
 	}
 
 	// required API Endpoints
@@ -58,32 +64,172 @@ public class TradeSysController {
 	// Create a new order (buy or sell)
 
 	// Response :: Created order with ID and status
+
+	// the order type will be sent via the request params
 	@PostMapping("/api/orders")
 	public OrderMang createNewOrder(@RequestParam int userID, @RequestParam String orderType,
-			@RequestParam String stockSymbol, @RequestParam double pricePerShare, @RequestParam int orderQuantity) {
+			@RequestParam String stockSymbol, @RequestParam double pricePerShare, @RequestParam double priceProposed,
+			@RequestParam int orderQuantity) {
+
+		OrderMang newOrder = null;
 
 		// 1. we want to make sure that the user doesn't own the stocks he wants to buy
-		
-		
-		if (orderType.toUpperCase()=="BUY")
-		{
-			
-		}
-		
-		OrderMang newOrder = new OrderMang(userID, stockSymbol, pricePerShare, orderType, orderQuantity);
 
-		orderList.add(newOrder);
-		
-		// 2. in case of selling , we want to make sure that the user still has enough to sell
-		
-		
-		
-		
-		// 3. after selling we want to match buying or selling
-		
-		
-		
-		//4. if executed we need to add it to the executed list
+		// 2. in case of selling , we want to make sure that the user still has enough
+		// to sell
+
+		for (int i = 0; i < usersPortfolios.length; i++) {
+			if (orderType.toUpperCase() == "BUY") {
+				if (usersPortfolios[i].getUserID() == userID) {
+					if (usersPortfolios[i].getStockOwned().getStockSymbol() == stockSymbol)
+						return null;
+					else
+						break;
+				}
+
+			} else if (orderType.toUpperCase() == "SELL") {
+				if (usersPortfolios[i].getUserID() == userID
+						&& usersPortfolios[i].getStockOwned().getStockSymbol() == stockSymbol) {
+					if (usersPortfolios[i].getQuntitiyOwned() >= orderQuantity) {
+						usersPortfolios[i].setQuntitiyOwned(usersPortfolios[i].getQuntitiyOwned() - orderQuantity);
+						break;
+
+					} else
+						return null;
+				}
+			}
+
+			newOrder = new OrderMang(userID, stockSymbol, pricePerShare, orderType, orderQuantity);
+
+			orderList.add(newOrder);
+		}
+
+		// 3. after order has finished we want to match buying or selling
+
+		// the order type symbole quantitiy etc are all coming from the params
+
+		// so we need to match via the symbole
+
+		if (orderList.size() > 1) {
+			for (int i = 0; i < orderList.size(); i++) {
+
+				// must be the same symboles
+				if (orderList.get(i).getStockSymbol() == stockSymbol && orderType == "BUY"
+						&& orderList.get(i).getOrderType() == "SELL") {
+
+					// for the order to sell we will decrease the quntity of the stocks , and
+					// increase the balance of that user
+
+					// for the user who is buying , we will decrease the balance
+					// and add the stock to the list of owned stocks
+
+					// we need to change the orderStatus to Executed
+
+					// and add it to the executed list
+
+					if (orderList.get(i).getOrderStatus() == "PENDING") {
+
+						// decrease qunatity
+						Portofolio userSelling = getUserById(orderList.get(i).getUserID());
+
+						Portofolio userBuying = getUserById(userID);
+
+						int howManyToSell = orderList.get(i).getOrderQuantity();
+
+						int newQuantity = userSelling.getQuntitiyOwned() - howManyToSell;
+
+						if (newQuantity < 0)
+							return null;
+
+						// sell order can be executed if there's a buy order at or above the sell price
+						if (priceProposed >= orderList.get(i).getPricePerShare() * orderQuantity) {
+
+							orderList.get(i).setOrderQuantity(newQuantity);
+
+							// increase the balance of that user
+
+							userSelling.setBalance(userSelling.getBalance() + priceProposed);
+
+							// for the user who is buying , we will decrease the balance
+
+							userBuying.setBalance(userBuying.getBalance() - priceProposed);
+
+							Stock tempStock = new Stock(orderList.get(i).getStockSymbol(),
+									orderList.get(i).getPricePerShare());
+
+							// and add the stock to the list of owned stocks
+							userBuying.addOtherStocks(tempStock, orderQuantity);
+
+							orderList.get(i).setOrderStatus("EXECUTED");
+
+							// orderBuyId , OrderSellId , StockSymbole of what was traded ,Quntitiy that was
+							// exchanged , executionPrice that was agreed on quantity*stockpricePerShare
+							// (int orderBuyID, int orderSellID, String stockSymbole, int qunantity, double
+							// executionPrice)
+							Trade tradeTemp = new Trade(newOrder.getOrderID(), orderList.get(i).getOrderID(),
+									stockSymbol, orderQuantity, priceProposed);
+
+							tradeList.add(tradeTemp);
+
+						}
+
+					} else if (orderList.get(i).getStockSymbol() == stockSymbol && orderType == "SELL"
+							&& orderList.get(i).getOrderType() == "BUY") {
+
+						if (orderList.get(i).getOrderStatus() == "PENDING") {
+
+							// decrease qunatity
+							Portofolio userSelling = getUserById(userID);
+
+							Portofolio userBuying = getUserById(orderList.get(i).getUserID());
+
+							int howManyToSell = orderList.get(i).getOrderQuantity();
+
+							int newQuantity = userSelling.getQuntitiyOwned() - howManyToSell;
+
+							if (newQuantity < 0)
+								return null;
+
+							// Buy order can be executed if there's a buy order at or less than the sell
+							// price
+							if (priceProposed <= orderList.get(i).getPricePerShare() * orderQuantity) {
+
+								orderList.get(i).setOrderQuantity(newQuantity);
+
+								// increase the balance of that user
+
+								userSelling.setBalance(userSelling.getBalance() + priceProposed);
+
+								// for the user who is buying , we will decrease the balance
+
+								userBuying.setBalance(userBuying.getBalance() - priceProposed);
+
+								Stock tempStock = new Stock(orderList.get(i).getStockSymbol(),
+										orderList.get(i).getPricePerShare());
+
+								// and add the stock to the list of owned stocks
+								userBuying.addOtherStocks(tempStock, orderQuantity);
+
+								orderList.get(i).setOrderStatus("EXECUTED");
+
+								// orderBuyId , OrderSellId , StockSymbole of what was traded ,Quntitiy that was
+								// exchanged , executionPrice that was agreed on quantity*stockpricePerShare
+								Trade tradeTemp = new Trade(orderList.get(i).getOrderID(), newOrder.getOrderID(),
+										stockSymbol, orderQuantity, priceProposed);
+
+								tradeList.add(tradeTemp);
+
+							}
+						}
+					}
+
+				} else {
+					// it was not found
+					return null;
+				}
+			}
+		}
+		// 4. if executed we need to add it to the executed list
 
 		return newOrder;
 
