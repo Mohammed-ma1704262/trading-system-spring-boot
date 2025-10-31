@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter;
 
 public class OrderMang {
 
-	private int userID;
+	private String userID;
 
 	private int orderID;
 	private String orderType;
@@ -43,7 +43,7 @@ public class OrderMang {
 //		this.timeStamp = myDateObj.format(myFormatObj);
 //	}
 
-	public OrderMang(int userID, String stockSymbol, double pricePerShare, String orderType, int orderQuantity) {
+	public OrderMang(String userID, String stockSymbol, double pricePerShare, String orderType, int orderQuantity) {
 		super();
 		this.orderID = (int) (Math.random() * 10001);
 		this.userID = userID;
@@ -51,12 +51,12 @@ public class OrderMang {
 		this.pricePerShare = pricePerShare;
 		this.stockSymbol = stockSymbol;
 
-		if (orderType.toUpperCase() == "BUY" || orderType.toUpperCase() == "SELL") {
+		if (orderType.toUpperCase().equals("BUY") || orderType.toUpperCase().equals("SELL")) {
 
 			this.orderType = orderType.toUpperCase();
 		}
 
-		else if (orderType.toUpperCase() != "BUY" || orderType.toUpperCase() != "SELL") {
+		else if (!orderType.toUpperCase().equals("BUY") || !orderType.toUpperCase().equals("SELL")) {
 			System.err.println("Error , you can only have the type to be eaither BUY or SELL check the spelling");
 		}
 
@@ -81,7 +81,7 @@ public class OrderMang {
 //		this.userID = userID;
 //	}
 
-	public int getUserID() {
+	public String getUserID() {
 		return userID;
 	}
 
@@ -102,7 +102,8 @@ public class OrderMang {
 	}
 
 	public void setOrderType(String orderType) {
-		if (orderType.toUpperCase() == "BUY" || orderType.toUpperCase() == "SELL") {
+
+		if (orderType.toUpperCase().equals("BUY") || orderType.toUpperCase().equals("SELL")) {
 
 			this.orderType = orderType.toUpperCase();
 		}
@@ -138,12 +139,13 @@ public class OrderMang {
 	}
 
 	public void setOrderStatus(String orderStatusToChange) {
-		if (orderStatusToChange.toUpperCase() == "PENDING" || orderStatusToChange.toUpperCase() == "EXECUTED") {
+		if (orderStatusToChange.toUpperCase().equals("PENDING")
+				|| orderStatusToChange.toUpperCase().equals("EXECUTED")) {
 
 			this.orderStatus = orderStatusToChange.toUpperCase();
 		}
-		if (orderStatusToChange.toUpperCase() == "CANCELLED") {
-			if (this.orderStatus.toUpperCase() == "PENDING")
+		if (orderStatusToChange.toUpperCase().equals("CANCELLED")) {
+			if (this.orderStatus.toUpperCase().equals("PENDING"))
 				this.orderStatus = orderStatusToChange.toUpperCase();
 			else {
 				System.err.println("Error , You can only cancel orders that are of status pending");

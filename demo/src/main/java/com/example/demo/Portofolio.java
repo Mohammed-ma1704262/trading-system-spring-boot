@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Portofolio {
-	private int userID;
+	private String userID;
 	private double balance;
 	private Stock stockOwned;
 //	private String stockSymbole;
@@ -25,7 +25,7 @@ public class Portofolio {
 //		this.avgPurshasedPrice = avgPurshasedPrice;
 //	}
 
-	public Portofolio(int userID, Stock stockOwned, int quntitiyOwned) {
+	public Portofolio(String userID, Stock stockOwned, int quntitiyOwned) {
 		super();
 		this.balance = 100000.0;
 		this.userID = userID;
@@ -80,7 +80,7 @@ public class Portofolio {
 //		this.stockPricePerShare = stockPricePerShare;
 //	}
 
-	public int getUserID() {
+	public String getUserID() {
 		return userID;
 	}
 

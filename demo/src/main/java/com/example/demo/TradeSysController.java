@@ -20,9 +20,9 @@ public class TradeSysController {
 	Stock stockMARK = new Stock("MARK", 2000);
 
 	// created some profiles for some users
-	Portofolio user1 = new Portofolio(12345, stockQIBK, 100);
-	Portofolio user2 = new Portofolio(67890, stockQNBK, 100);
-	Portofolio user3 = new Portofolio(10112, stockMARK, 100);
+	Portofolio user1 = new Portofolio("12345", stockQIBK, 100);
+	Portofolio user2 = new Portofolio("67890", stockQNBK, 100);
+	Portofolio user3 = new Portofolio("10112", stockMARK, 100);
 
 	Portofolio[] usersPortfolios = { user1, user2, user3 };
 
@@ -41,7 +41,7 @@ public class TradeSysController {
 		return usersPortfolios;
 	}
 
-	public Portofolio getUserById(int UserID) {
+	public Portofolio getUserById(String UserID) {
 		for (int i = 0; i < usersPortfolios.length; i++) {
 			if (usersPortfolios[i].getUserID() == UserID) {
 				return usersPortfolios[i];
@@ -52,7 +52,7 @@ public class TradeSysController {
 
 	// getting a specific user via his ID
 	@GetMapping("/api/user/{UserID}")
-	public Portofolio getSepcUser(@PathVariable int UserID) {
+	public Portofolio getSepcUser(@PathVariable String UserID) {
 		return getUserById(UserID);
 	}
 
@@ -66,30 +66,40 @@ public class TradeSysController {
 	// Response :: Created order with ID and status
 
 	// the order type will be sent via the request params
+
+	// Create a request response
+
 	@PostMapping("/api/orders")
-	public OrderMang createNewOrder(@RequestParam int userID, @RequestParam String orderType,
+	public OrderResponse createNewOrder(@RequestParam String userID, @RequestParam String orderType,
 			@RequestParam String stockSymbol, @RequestParam double pricePerShare, @RequestParam double priceProposed,
 			@RequestParam int orderQuantity) {
 
 		OrderMang newOrder = null;
+
+		// (String userId, String stockSymbol, String orderType, int quantity, double
+		// price)
+		OrderResponse OrderResponse = new OrderResponse(userID, stockSymbol, orderType, orderQuantity, priceProposed);
 
 		// 1. we want to make sure that the user doesn't own the stocks he wants to buy
 
 		// 2. in case of selling , we want to make sure that the user still has enough
 		// to sell
 
+//		return OrderResponse;
+
+		// checking logical errors so we are expecting to return nothing
 		for (int i = 0; i < usersPortfolios.length; i++) {
-			if (orderType.toUpperCase() == "BUY") {
-				if (usersPortfolios[i].getUserID() == userID) {
-					if (usersPortfolios[i].getStockOwned().getStockSymbol() == stockSymbol)
+			if (orderType.toUpperCase().equals("BUY")) {
+				if (usersPortfolios[i].getUserID().equals(userID)) {
+					if (usersPortfolios[i].getStockOwned().getStockSymbol().equals(stockSymbol))
 						return null;
 					else
 						break;
 				}
 
-			} else if (orderType.toUpperCase() == "SELL") {
-				if (usersPortfolios[i].getUserID() == userID
-						&& usersPortfolios[i].getStockOwned().getStockSymbol() == stockSymbol) {
+			} else if (orderType.toUpperCase().equals("SELL")) {
+				if (usersPortfolios[i].getUserID().equals(userID)
+						&& usersPortfolios[i].getStockOwned().getStockSymbol().equals(stockSymbol)) {
 					if (usersPortfolios[i].getQuntitiyOwned() >= orderQuantity) {
 						usersPortfolios[i].setQuntitiyOwned(usersPortfolios[i].getQuntitiyOwned() - orderQuantity);
 						break;
@@ -114,8 +124,8 @@ public class TradeSysController {
 			for (int i = 0; i < orderList.size(); i++) {
 
 				// must be the same symboles
-				if (orderList.get(i).getStockSymbol() == stockSymbol && orderType == "BUY"
-						&& orderList.get(i).getOrderType() == "SELL") {
+				if (orderList.get(i).getStockSymbol().equals(stockSymbol) && orderType.equals("BUY")
+						&& orderList.get(i).getOrderType().equals("SELL")) {
 
 					// for the order to sell we will decrease the quntity of the stocks , and
 					// increase the balance of that user
@@ -127,7 +137,7 @@ public class TradeSysController {
 
 					// and add it to the executed list
 
-					if (orderList.get(i).getOrderStatus() == "PENDING") {
+					if (orderList.get(i).getOrderStatus().equals("PENDING")) {
 
 						// decrease qunatity
 						Portofolio userSelling = getUserById(orderList.get(i).getUserID());
@@ -173,10 +183,10 @@ public class TradeSysController {
 
 						}
 
-					} else if (orderList.get(i).getStockSymbol() == stockSymbol && orderType == "SELL"
-							&& orderList.get(i).getOrderType() == "BUY") {
+					} else if (orderList.get(i).getStockSymbol().equals(stockSymbol) && orderType.equals("SELL")
+							&& orderList.get(i).getOrderType().equals("BUY")) {
 
-						if (orderList.get(i).getOrderStatus() == "PENDING") {
+						if (orderList.get(i).getOrderStatus().equals("PENDING")) {
 
 							// decrease qunatity
 							Portofolio userSelling = getUserById(userID);
@@ -223,15 +233,15 @@ public class TradeSysController {
 						}
 					}
 
-				} else {
-					// it was not found
-					return null;
+//				} else {
+//					// it was not found
+//					return null;
 				}
 			}
 		}
 		// 4. if executed we need to add it to the executed list
 
-		return newOrder;
+		return OrderResponse;
 
 	}
 
@@ -251,13 +261,13 @@ public class TradeSysController {
 
 	// Get all orders for a specific user
 	@GetMapping("/api/orders/users/{userId}")
-	public ArrayList<OrderMang> getAllOrdersForAUser(@PathVariable int userId) {
+	public ArrayList<OrderMang> getAllOrdersForAUser(@PathVariable String userId) {
 
 		ArrayList<OrderMang> orderListTemp = new ArrayList<OrderMang>();
 
 		for (OrderMang order : orderList) {
 
-			if (order.getUserID() == userId)
+			if (order.getUserID().equals(userId))
 				orderListTemp.add(order);
 		}
 
@@ -281,7 +291,7 @@ public class TradeSysController {
 
 	// Get all trades for a specific user
 	@GetMapping("/api/trades/user/{userId}")
-	public void getAllExecutedTradesForASpecificUser(@PathVariable int userId) {
+	public void getAllExecutedTradesForASpecificUser(@PathVariable String userId) {
 	}
 
 	// Get all trades for a specific stock
@@ -295,12 +305,12 @@ public class TradeSysController {
 
 	// Get user's complete portfolio (holdings and cash balance)
 	@GetMapping("/api/portfolio/{userId}")
-	public void getUserCompletePortofolio(@PathVariable int userId) {
+	public void getUserCompletePortofolio(@PathVariable String userId) {
 	}
 
 	// Get user's position for a specific stock
 	@GetMapping("/api/portfolio/{userId}/stock/{symbol}")
-	public void getUserCompletePortofolio(@PathVariable int userId, @PathVariable String symbol) {
+	public void getUserCompletePortofolio(@PathVariable String userId, @PathVariable String symbol) {
 	}
 
 	//// //// //// //// //// //// //// //// //// ////
