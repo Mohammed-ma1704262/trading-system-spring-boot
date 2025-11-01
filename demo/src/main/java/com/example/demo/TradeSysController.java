@@ -20,9 +20,9 @@ public class TradeSysController {
 	Stock stockMARK = new Stock("MARK", 2000);
 
 	// created some profiles for some users
-	Portofolio user1 = new Portofolio("12345", stockQIBK, 100);
-	Portofolio user2 = new Portofolio("67890", stockQNBK, 100);
-	Portofolio user3 = new Portofolio("10112", stockMARK, 100);
+	Portofolio user1 = new Portofolio("12345", stockQIBK, 1000);
+	Portofolio user2 = new Portofolio("67890", stockQNBK, 1000);
+	Portofolio user3 = new Portofolio("10112", stockMARK, 1000);
 
 	Portofolio[] usersPortfolios = { user1, user2, user3 };
 
@@ -43,7 +43,7 @@ public class TradeSysController {
 
 	public Portofolio getUserById(String UserID) {
 		for (int i = 0; i < usersPortfolios.length; i++) {
-			if (usersPortfolios[i].getUserID() == UserID) {
+			if (usersPortfolios[i].getUserID().equals(UserID)) {
 				return usersPortfolios[i];
 			}
 		}
@@ -54,6 +54,11 @@ public class TradeSysController {
 	@GetMapping("/api/user/{UserID}")
 	public Portofolio getSepcUser(@PathVariable String UserID) {
 		return getUserById(UserID);
+	}
+
+	@GetMapping("/api/orders/all-orders")
+	public ArrayList<OrderMang> getAllOrders() {
+		return orderList;
 	}
 
 	// required API Endpoints
@@ -78,7 +83,7 @@ public class TradeSysController {
 
 		// (String userId, String stockSymbol, String orderType, int quantity, double
 		// price)
-		OrderResponse OrderResponse = new OrderResponse(userID, stockSymbol, orderType, orderQuantity, priceProposed);
+		OrderResponse response = new OrderResponse(userID, stockSymbol, orderType, orderQuantity, priceProposed);
 
 		// 1. we want to make sure that the user doesn't own the stocks he wants to buy
 
@@ -88,30 +93,50 @@ public class TradeSysController {
 //		return OrderResponse;
 
 		// checking logical errors so we are expecting to return nothing
-		for (int i = 0; i < usersPortfolios.length; i++) {
-			if (orderType.toUpperCase().equals("BUY")) {
-				if (usersPortfolios[i].getUserID().equals(userID)) {
-					if (usersPortfolios[i].getStockOwned().getStockSymbol().equals(stockSymbol))
-						return null;
-					else
-						break;
+
+		Portofolio targetedUser = getUserById(userID);
+
+		if (targetedUser == null) {
+			System.err.println("user Was Not Found");
+			return null;
+		}
+
+		if (orderType.toUpperCase().equals("BUY")) {
+			if (targetedUser.getUserID().equals(userID)) {
+				if (targetedUser.getStockOwned().getStockSymbol().equals(stockSymbol)) {
+					System.err.println("You can't buy a stock you own");
+
+					return null;
+				} else {
+					newOrder = new OrderMang(userID, stockSymbol, pricePerShare, orderType, orderQuantity);
+
+					orderList.add(newOrder);
+
 				}
 
-			} else if (orderType.toUpperCase().equals("SELL")) {
-				if (usersPortfolios[i].getUserID().equals(userID)
-						&& usersPortfolios[i].getStockOwned().getStockSymbol().equals(stockSymbol)) {
-					if (usersPortfolios[i].getQuntitiyOwned() >= orderQuantity) {
-						usersPortfolios[i].setQuntitiyOwned(usersPortfolios[i].getQuntitiyOwned() - orderQuantity);
-						break;
-
-					} else
-						return null;
-				}
 			}
 
-			newOrder = new OrderMang(userID, stockSymbol, pricePerShare, orderType, orderQuantity);
+		} else if (orderType.toUpperCase().equals("SELL")) {
+			if (targetedUser.getUserID().equals(userID)
+					&& targetedUser.getStockOwned().getStockSymbol().equals(stockSymbol)) {
+				if (targetedUser.getQuntitiyOwned() >= orderQuantity) {
+					// it's adviced to not detuct from the quntity unless a transcation happens
+					// targetedUser.setQuntitiyOwned(targetedUser.getQuntitiyOwned() -
+					// orderQuantity);
 
-			orderList.add(newOrder);
+					newOrder = new OrderMang(userID, stockSymbol, pricePerShare, orderType, orderQuantity);
+
+					orderList.add(newOrder);
+
+				}
+			} else {
+				if (!targetedUser.getStockOwned().getStockSymbol().equals(stockSymbol))
+					System.err.println("You can't sell  A Stock you don't own ");
+				if (targetedUser.getQuntitiyOwned() < orderQuantity)
+					System.err.println("You can't sell this order Quantity is more than what you currently have ");
+				return null;
+
+			}
 		}
 
 		// 3. after order has finished we want to match buying or selling
@@ -120,12 +145,16 @@ public class TradeSysController {
 
 		// so we need to match via the symbole
 
-		if (orderList.size() > 1) {
+		if (orderList.size() > 1)
+
+		{
 			for (int i = 0; i < orderList.size(); i++) {
 
 				// must be the same symboles
-				if (orderList.get(i).getStockSymbol().equals(stockSymbol) && orderType.equals("BUY")
-						&& orderList.get(i).getOrderType().equals("SELL")) {
+
+				OrderMang orderInList = orderList.get(i);
+				if (orderInList.getStockSymbol().equals(stockSymbol) && orderType.equals("BUY")
+						&& orderInList.getOrderType().equals("SELL")) {
 
 					// for the order to sell we will decrease the quntity of the stocks , and
 					// increase the balance of that user
@@ -137,14 +166,14 @@ public class TradeSysController {
 
 					// and add it to the executed list
 
-					if (orderList.get(i).getOrderStatus().equals("PENDING")) {
+					if (orderInList.getOrderStatus().equals("PENDING")) {
 
 						// decrease qunatity
-						Portofolio userSelling = getUserById(orderList.get(i).getUserID());
+						Portofolio userSelling = getUserById(orderInList.getUserID());
 
 						Portofolio userBuying = getUserById(userID);
 
-						int howManyToSell = orderList.get(i).getOrderQuantity();
+						int howManyToSell = orderInList.getOrderQuantity();
 
 						int newQuantity = userSelling.getQuntitiyOwned() - howManyToSell;
 
@@ -152,9 +181,9 @@ public class TradeSysController {
 							return null;
 
 						// sell order can be executed if there's a buy order at or above the sell price
-						if (priceProposed >= orderList.get(i).getPricePerShare() * orderQuantity) {
+						if (priceProposed >= orderInList.getPricePerShare() * orderQuantity) {
 
-							orderList.get(i).setOrderQuantity(newQuantity);
+							orderInList.setOrderQuantity(newQuantity);
 
 							// increase the balance of that user
 
@@ -164,36 +193,37 @@ public class TradeSysController {
 
 							userBuying.setBalance(userBuying.getBalance() - priceProposed);
 
-							Stock tempStock = new Stock(orderList.get(i).getStockSymbol(),
-									orderList.get(i).getPricePerShare());
+							Stock tempStock = new Stock(orderInList.getStockSymbol(), orderInList.getPricePerShare());
 
 							// and add the stock to the list of owned stocks
 							userBuying.addOtherStocks(tempStock, orderQuantity);
 
-							orderList.get(i).setOrderStatus("EXECUTED");
+							orderInList.setOrderStatus("EXECUTED");
+
+							newOrder.setOrderStatus("EXECUTED");
 
 							// orderBuyId , OrderSellId , StockSymbole of what was traded ,Quntitiy that was
 							// exchanged , executionPrice that was agreed on quantity*stockpricePerShare
 							// (int orderBuyID, int orderSellID, String stockSymbole, int qunantity, double
 							// executionPrice)
-							Trade tradeTemp = new Trade(newOrder.getOrderID(), orderList.get(i).getOrderID(),
-									stockSymbol, orderQuantity, priceProposed);
+							Trade tradeTemp = new Trade(newOrder.getOrderID(), orderInList.getOrderID(), stockSymbol,
+									orderQuantity, priceProposed);
 
 							tradeList.add(tradeTemp);
 
 						}
 
-					} else if (orderList.get(i).getStockSymbol().equals(stockSymbol) && orderType.equals("SELL")
-							&& orderList.get(i).getOrderType().equals("BUY")) {
+					} else if (orderInList.getStockSymbol().equals(stockSymbol) && orderType.equals("SELL")
+							&& orderInList.getOrderType().equals("BUY")) {
 
-						if (orderList.get(i).getOrderStatus().equals("PENDING")) {
+						if (orderInList.getOrderStatus().equals("PENDING")) {
 
 							// decrease qunatity
 							Portofolio userSelling = getUserById(userID);
 
-							Portofolio userBuying = getUserById(orderList.get(i).getUserID());
+							Portofolio userBuying = getUserById(orderInList.getUserID());
 
-							int howManyToSell = orderList.get(i).getOrderQuantity();
+							int howManyToSell = orderInList.getOrderQuantity();
 
 							int newQuantity = userSelling.getQuntitiyOwned() - howManyToSell;
 
@@ -202,9 +232,9 @@ public class TradeSysController {
 
 							// Buy order can be executed if there's a buy order at or less than the sell
 							// price
-							if (priceProposed <= orderList.get(i).getPricePerShare() * orderQuantity) {
+							if (priceProposed <= orderInList.getPricePerShare() * orderQuantity) {
 
-								orderList.get(i).setOrderQuantity(newQuantity);
+								orderInList.setOrderQuantity(newQuantity);
 
 								// increase the balance of that user
 
@@ -214,17 +244,19 @@ public class TradeSysController {
 
 								userBuying.setBalance(userBuying.getBalance() - priceProposed);
 
-								Stock tempStock = new Stock(orderList.get(i).getStockSymbol(),
-										orderList.get(i).getPricePerShare());
+								Stock tempStock = new Stock(orderInList.getStockSymbol(),
+										orderInList.getPricePerShare());
 
 								// and add the stock to the list of owned stocks
 								userBuying.addOtherStocks(tempStock, orderQuantity);
 
-								orderList.get(i).setOrderStatus("EXECUTED");
+								orderInList.setOrderStatus("EXECUTED");
+
+								newOrder.setOrderStatus("EXECUTED");
 
 								// orderBuyId , OrderSellId , StockSymbole of what was traded ,Quntitiy that was
 								// exchanged , executionPrice that was agreed on quantity*stockpricePerShare
-								Trade tradeTemp = new Trade(orderList.get(i).getOrderID(), newOrder.getOrderID(),
+								Trade tradeTemp = new Trade(orderInList.getOrderID(), newOrder.getOrderID(),
 										stockSymbol, orderQuantity, priceProposed);
 
 								tradeList.add(tradeTemp);
@@ -241,7 +273,7 @@ public class TradeSysController {
 		}
 		// 4. if executed we need to add it to the executed list
 
-		return OrderResponse;
+		return response;
 
 	}
 
