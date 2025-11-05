@@ -101,9 +101,54 @@ public class Portofolio {
 		return otherOwnedStocks;
 	}
 
+	public Map<Stock, Integer> getStockFromOtherOwnedStocks(String symbole) {
+
+		Stock tempStock = null;
+
+		Integer quantity = 0;
+		for (Map.Entry mapElement : this.otherOwnedStocks.entrySet()) {
+			Stock key = (Stock) mapElement.getKey();
+
+			if (key.getStockSymbol().equals(symbole)) {
+				tempStock = key;
+				quantity = (Integer) mapElement.getValue();
+				break;
+			}
+
+		}
+
+		Map<Stock, Integer> tempMap = new HashMap<Stock, Integer>();
+
+		tempMap.put(tempStock, quantity);
+
+		return tempMap;
+	}
+
+	public boolean updateIfAlreadyOwnedStock(Stock stock, int quantity) {
+		boolean exists = false;
+
+		for (Map.Entry mapElement : this.otherOwnedStocks.entrySet()) {
+			Stock key = (Stock) mapElement.getKey();
+
+			if (key.getStockSymbol().equals(stock.getStockSymbol())) {
+				int quntityAlreadyOwned = (int) mapElement.getValue();
+				mapElement.setValue(quantity + quntityAlreadyOwned);
+				exists = true;
+				break;
+			}
+
+		}
+		return exists;
+
+	}
+
 	public void addOtherStocks(Stock stock, int quantity) {
-		if (stock.getStockSymbol() != this.stockOwned.getStockSymbol())
-			this.otherOwnedStocks.put(stock, quantity);
+		if (stock.getStockSymbol() != this.stockOwned.getStockSymbol()) {
+			if (!updateIfAlreadyOwnedStock(stock, quantity))
+				this.otherOwnedStocks.put(stock, quantity);
+
+		}
+
 		else {
 			System.err.println("You can only add other stocks , not the same stock you already own");
 		}
