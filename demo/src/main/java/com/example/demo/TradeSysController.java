@@ -186,6 +186,7 @@ public class TradeSysController {
 		// Update orders
 
 		if (buyOrder.getOrderQuantity() == tradeQuantity) {
+//			buyOrder.setOrderQuantity(0);
 			buyOrder.setOrderStatus("EXECUTED");
 		} else {
 			buyOrder.setOrderQuantity(buyOrder.getOrderQuantity() - tradeQuantity);
@@ -193,11 +194,12 @@ public class TradeSysController {
 		}
 
 		if (sellOrder.getOrderQuantity() == tradeQuantity) {
+//			sellOrder.setOrderQuantity(0);
 			sellOrder.setOrderStatus("EXECUTED");
-		} else {
+		} else { 
 			sellOrder.setOrderQuantity(sellOrder.getOrderQuantity() - tradeQuantity);
 			// Order remains PENDING for the remaining quantity
-		}
+		}  
 
 		// Create trade record
 		Trade trade = new Trade(buyOrder.getOrderID(), sellOrder.getOrderID(), buyOrder.getStockSymbol(), tradeQuantity,

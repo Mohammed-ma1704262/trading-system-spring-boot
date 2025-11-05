@@ -143,8 +143,7 @@ public class OrderMang {
 				|| orderStatusToChange.toUpperCase().equals("EXECUTED")) {
 
 			this.orderStatus = orderStatusToChange.toUpperCase();
-		}
-		if (orderStatusToChange.toUpperCase().equals("CANCELLED")) {
+		} else if (orderStatusToChange.toUpperCase().equals("CANCELLED")) {
 			if (this.orderStatus.toUpperCase().equals("PENDING"))
 				this.orderStatus = orderStatusToChange.toUpperCase();
 			else {
@@ -152,7 +151,9 @@ public class OrderMang {
 			}
 		}
 
-		else {
+		else if (!orderStatusToChange.toUpperCase().equals("PENDING")
+				|| !orderStatusToChange.toUpperCase().equals("EXECUTED")
+				|| !orderStatusToChange.toUpperCase().equals("CANCELLED")) {
 			System.err.println("Error , only place PENDING, EXECUTED, Or CANCELLED  check the spelling");
 		}
 
