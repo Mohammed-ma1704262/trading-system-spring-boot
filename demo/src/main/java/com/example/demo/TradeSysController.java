@@ -196,10 +196,10 @@ public class TradeSysController {
 		if (sellOrder.getOrderQuantity() == tradeQuantity) {
 //			sellOrder.setOrderQuantity(0);
 			sellOrder.setOrderStatus("EXECUTED");
-		} else { 
+		} else {
 			sellOrder.setOrderQuantity(sellOrder.getOrderQuantity() - tradeQuantity);
 			// Order remains PENDING for the remaining quantity
-		}  
+		}
 
 		// Create trade record
 		Trade trade = new Trade(buyOrder.getOrderID(), sellOrder.getOrderID(), buyOrder.getStockSymbol(), tradeQuantity,
@@ -424,7 +424,32 @@ public class TradeSysController {
 
 	// Cancel a pending order
 	@DeleteMapping("/api/orders/{orderId}")
-	public void cancelAPendingOrder(@PathVariable int orderId) {
+	public OrderMang cancelAPendingOrder(@PathVariable int orderId) {
+
+		Object obj = orderId;
+		if (!(obj instanceof Integer)) {
+			System.err.println("The Input was not a number , check again please");
+			return null;
+		}
+
+		OrderMang orderTemp = null;
+
+		for (OrderMang order : orderList) {
+
+			if (order.getOrderID() == orderId) {
+				if (order.getOrderStatus().equals("PENDING")) {
+					orderTemp = order;
+					order.setOrderStatus("CANCELLED");
+				}
+			}
+		}
+
+		if (orderTemp == null) {
+			System.err.println("Order was not found");
+		}
+
+		return orderTemp;
+
 	}
 
 	//// //// //// //// //// //// //// //// //// ////
@@ -507,7 +532,50 @@ public class TradeSysController {
 
 	// Get current market data for a stock (best bid, best ask, last trade price)
 	@GetMapping("/api/market/{symbol}")
-	public void getCurrentMarketDataForAStock(@PathVariable String symbol) {
+	public MarketResponse getCurrentMarketDataForAStock(@PathVariable String symbol) {
+		MarketResponse response = new MarketResponse(symbol, 0.0, 0.0, 0.0);
+		if (orderList.size() > 1) {
+
+			Double bestBid = null;
+			Double bestAsk = null;
+
+//			double bestBid = 0.0;
+//			double bestAsk = 999999.9;
+			Double lastTradePrice = null;
+
+			for (OrderMang order : orderList) {
+
+				if (order.getStockSymbol().equals(symbol)
+						&& (order.getOrderStatus().equals("PENDING") || order.getOrderStatus().equals("EXECUTED"))) {
+
+					if (order.getOrderType().equals("BUY")) {
+						if (bestBid == null || order.getPricePerShare() > bestBid) {
+							bestBid = order.getPricePerShare();
+						}
+					} else if (order.getOrderType().equals("SELL")) {
+						if (bestAsk == null || order.getPricePerShare() < bestAsk) {
+							bestAsk = order.getPricePerShare();
+						}
+					}
+				}
+				if (order.getStockSymbol().equals(symbol) && order.getOrderStatus().equals("EXECUTED")) {
+
+					lastTradePrice = order.getPricePerShare();
+				}
+
+			}
+
+			// Handle cases where no orders found
+			if (bestBid == null)
+				bestBid = 0.0;
+			if (bestAsk == null)
+				bestAsk = 0.0;
+			if (lastTradePrice == null)
+				lastTradePrice = 0.0;
+
+			response = new MarketResponse(symbol, bestBid, bestAsk, lastTradePrice);
+		}
+		return response;
 	}
 
 }

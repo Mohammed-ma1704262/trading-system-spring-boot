@@ -90,11 +90,37 @@ public class Portofolio {
 
 	/// hmmmm things Don't make sense here
 	public double getAvgPurshasedPrice() {
-		return stockOwned.getPricePerShare() / quntitiyOwned;
+
+		// (totalAmountSpent) / (total quantity owned)
+
+		// totalAmountSpent = 100000- balance;
+
+		double totalAmountSpent = 100000.0 - balance;
+
+		if (getAllQuntity() > 0 && totalAmountSpent > 0) {
+			return (totalAmountSpent / getAllQuntity());
+		} else
+			return 0.0;
 	}
 
 	public double getCurrentValue() {
-		return quntitiyOwned * stockOwned.getPricePerShare();
+		int totalQuntitiyStocksOwned = getAllQuntity();
+		return totalQuntitiyStocksOwned * stockOwned.getPricePerShare();
+	}
+
+	public int getAllQuntity() {
+
+		int totalQuntitiyStocksOwned = quntitiyOwned;
+
+		Integer quantity = 0;
+		for (Map.Entry mapElement : this.otherOwnedStocks.entrySet()) {
+			Stock key = (Stock) mapElement.getKey();
+
+			totalQuntitiyStocksOwned = totalQuntitiyStocksOwned + (Integer) mapElement.getValue();
+
+		}
+
+		return totalQuntitiyStocksOwned;
 	}
 
 	public Map<Stock, Integer> getOtherOwnedStocks() {
