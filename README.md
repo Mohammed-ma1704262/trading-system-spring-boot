@@ -38,7 +38,7 @@ A RESTful API for a simple stock trading system built with Spring Boot. This sys
 - `GET /api/market/{symbol}` - Get current market data for a stock
 
 
-## 💡 Key Features Implementation
+## Key Features Implementation
 
 ### Order Matching Logic
 - Buy orders execute when there's a sell order at or below the buy price
@@ -82,7 +82,7 @@ A RESTful API for a simple stock trading system built with Spring Boot. This sys
 - User tries to sell stock they don't own
 - System rejects with appropriate error message
 
-## ⚠️ Assumptions & Limitations
+##  Assumptions & Limitations
 
 ### Assumptions
 - Users start with pre-defined portfolios and stocks
@@ -90,7 +90,7 @@ A RESTful API for a simple stock trading system built with Spring Boot. This sys
 - Market data is calculated from active orders and recent trades
 
 
-## 🎯 Business Rules
+## Business Rules
 
 1. **Order Validation**:
    - Users can only sell stocks they own in sufficient quantity
@@ -107,8 +107,3 @@ A RESTful API for a simple stock trading system built with Spring Boot. This sys
    - Current value uses the latest market price
 
 
-For questions or issues regarding this trading system, please refer to the API documentation above or check the source code comments.
-
----
-
-**Note**: This is a demonstration project for educational purposes. Not recommended for production use without additional security and validation measures.
