@@ -66,7 +66,7 @@ A RESTful API for a simple stock trading system built with Spring Boot. This sys
 - **10112** - Initial Stock: MARK Owns 1000
 
 
-## 🧪 Sample Test Scenarios
+## Sample Test Scenarios
 
 ### 1. Basic Trade Flow
 - User A buys 10 QIBK shares at QAR 150
