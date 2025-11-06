@@ -1,8 +1,6 @@
 # Trading System Spring Boot
 The Group Securities Recruitment Assignment
 
-Based on your trading system assignment, here's a comprehensive README.md file:
-
 # Trading System API
 
 A RESTful API for a simple stock trading system built with Spring Boot. This system allows users to place buy/sell orders, and execute trades automatically.
