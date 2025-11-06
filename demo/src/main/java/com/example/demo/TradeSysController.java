@@ -534,13 +534,13 @@ public class TradeSysController {
 	@GetMapping("/api/market/{symbol}")
 	public MarketResponse getCurrentMarketDataForAStock(@PathVariable String symbol) {
 		MarketResponse response = new MarketResponse(symbol, 0.0, 0.0, 0.0);
-		if (orderList.size() > 1) {
-
-			Double bestBid = null;
-			Double bestAsk = null;
+		if (orderList.size() > 0) {
 
 //			double bestBid = 0.0;
 //			double bestAsk = 999999.9;
+
+			Double bestBid = null;
+			Double bestAsk = null;
 			Double lastTradePrice = null;
 
 			for (OrderMang order : orderList) {
@@ -558,9 +558,14 @@ public class TradeSysController {
 						}
 					}
 				}
-				if (order.getStockSymbol().equals(symbol) && order.getOrderStatus().equals("EXECUTED")) {
 
-					lastTradePrice = order.getPricePerShare();
+			}
+
+			for (Trade trade : tradeList) {
+
+				if (trade.getStockSymbole().equals(symbol)) {
+
+					lastTradePrice = trade.getExecutionPrice();// * trade.getQunantity();
 				}
 
 			}
