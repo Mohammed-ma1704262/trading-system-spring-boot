@@ -1,8 +1,6 @@
 # Trading System Spring Boot
 The Group Securities Recruitment Assignment
 
-Based on your trading system assignment, here's a comprehensive README.md file:
-
 # Trading System API
 
 A RESTful API for a simple stock trading system built with Spring Boot. This system allows users to place buy/sell orders, and execute trades automatically.
@@ -106,4 +104,36 @@ A RESTful API for a simple stock trading system built with Spring Boot. This sys
    - Average purchase price is calculated as total cost / total quantity
    - Current value uses the latest market price
 
+
+##  The application will start on `http://localhost:8080`
+
+##  API Usage Examples 
+
+# Using Postman , you can create these command to send the Requsets
+
+### Create a Buy Order
+```bash
+"localhost:8080/api/orders?userID=12345&orderType=SELL&orderQuantity=40&stockSymbol=QIBK&pricePerShare=2000"
+```
+
+### Create a Sell Order
+```bash
+ "localhost:8080/api/orders?userID=67890&orderType=BUY&orderQuantity=10&stockSymbol=QIBK&pricePerShare=2000"
+```
+
+### Get User Portfolio
+```bash
+"http://localhost:8080/api/portfolio/12345"
+```
+
+### Get Market Data
+```bash
+"http://localhost:8080/api/market/QIBK"
+```
+
+### Cancel an Order
+```bash
+localhost:8080/api/orders/3360"
+```
+ 
 
